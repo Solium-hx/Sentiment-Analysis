@@ -17,11 +17,59 @@ audio_emotions = {
 
 video_emotions = []
 
-def aggr_emotions(audio_emotions, video_emotions):
-    print("Video: ", video_emotions)
-    print("Statement: ", audio_emotions['Statement'])
-    print("Text: ", audio_emotions["Text"])
-    print("Audio: ", audio_emotions["Audio"])
+emotion_factor = {
+    'good': 1,
+    'neu': 0.98,
+    'bad': 0.3
+}
+
+text_classification = {
+    'admiration': 'good',
+    'amusement': 'good',
+    'anger':'bad', 
+    'annoyance':'bad', 
+    'approval':'good', 
+    'caring':'good', 
+    'confusion':'bad', 
+    'curiosity':'neu', 
+    'desire':'neu', 
+    'disappointment':'bad', 
+    'disapproval':'neu', 
+    'disgust':'bad', 
+    'embarrassment':'bad', 
+    'excitement':'good', 
+    'fear':'bad', 
+    'gratitude':'neu', 
+    'grief':'bad', 
+    'joy':'good', 
+    'love':'neu', 
+    'nervousness':'bad', 
+    'optimism':'neu', 
+    'pride':'neu', 
+    'realization':'neu', 
+    'relief':'neu', 
+    'remorse':'bad', 
+    'sadness':'bad', 
+    'surprise':'neu',
+    'neutral':'neu'
+}
+
+audio_classification = {
+    'neu':'neu',
+    'ang':'bad',
+    'hap':'good',
+    'sad':'bad'
+}
+
+video_classification = {
+    "Angry":'bad',
+    "Disgust":'bad',
+    "Fear":'bad', 
+    "Happy":'good',
+    "Neutral":'neu', 
+    "Sad":'bad',
+    "Surprise":'neu'
+}
 
 
 def run_camera(camera, video_emotions):
@@ -29,8 +77,6 @@ def run_camera(camera, video_emotions):
         frame, pred = Cam.get_pred_frame()
         video_emotions.append(pred)
         imshow("Camera", frame)
-        if pred != "":
-            print(pred)
         if waitKey(1) == 27:
             break
     destroyAllWindows()
@@ -45,7 +91,7 @@ def run_mic(mic, duration, audio_emotions):
                 'Score': text_resp[1][0]['score']
             }
         else:
-            print("Error: ", resp)
+            print("Error: ", text_resp)
             audio_emotions = {
                 'Statement': None,
                 'Text': {
@@ -97,5 +143,22 @@ while True:
     t2.start()
     t2.join()
 
-    t3 = threading.Thread(target=aggr_emotions, args=(audio_emotions, video_emotions, ))
-    t3.start()
+    temp = 0
+    count = 0
+    for i in video_emotions:
+        if i != "":
+            temp += emotion_factor[video_classification[i]]
+            count += 1
+    
+    temp/=count
+
+    video_emotions.clear()
+
+    if audio_emotions['Statement'] is None:
+        continue
+
+    res = (35*emotion_factor[text_classification[audio_emotions['Text']['Emotion']]]+45*emotion_factor[audio_classification[audio_emotions['Audio']['Emotion']]]+20*temp)
+
+    print(video_emotions)
+    print(audio_emotions)
+    print(f'RES = {res}')

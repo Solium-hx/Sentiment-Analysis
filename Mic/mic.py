@@ -35,7 +35,7 @@ class MicAudio(object):
             return False, e
         
     def run_audio_analysis(self, audio):
-        with open("microphone.wav", "wb") as f:
+        with open("temp_audio.wav", "wb") as f:
             f.write(audio.get_wav_data())
-        return audio_classifier.classify_file("microphone.wav")
+        return audio_classifier.classify_file("temp_audio.wav")
         
